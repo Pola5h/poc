@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api([
-            'tenant.by.request' => \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
+            \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
 
         ]);
     })

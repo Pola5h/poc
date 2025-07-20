@@ -73,6 +73,9 @@ return [
             ]) : [],
         ],
 
+        // in db tenants table, data column
+        // {"tenancy_db_name":"tenant2_db","tenancy_db_connection":"mysql","tenancy_db_username":"tenant2","tenancy_db_password":"password"}
+
       
 
     ],

@@ -12,6 +12,19 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
 InitializeTenancyByRequestData::$header = 'X-TENANT-ID';
 InitializeTenancyByRequestData::$queryParameter = null; // or null to disable query param
 
+Route::get('/tenant-info', function () {
+    $tenant = Tenant::find('tenant1');
+    if ($tenant) {
+        return response()->json([
+            'id' => $tenant->getTenantKey(),
+            'database' => $tenant->database,
+            'username' => $tenant->username,
+        ]);
+    }
+    return response()->json(['error' => 'No tenant found'], 404);
+})->withoutMiddleware(InitializeTenancyByRequestData::class);
+
+
 Route::middleware([
     'api'
 ])->group(function () {
@@ -25,13 +38,9 @@ Route::middleware([
         $isSwitched = false;
         $dbName = DB::connection()->getDatabaseName();
         $dbUser = DB::getConfig('username');
-        if ($tenant && $tenancy->initialized && $dbName === $tenant->database && $dbUser === $tenant->username) {
-            $isSwitched = true;
-        }
+
         return [
             'tenant_id' => $tenant?->id,
-            'expected_db' => $tenant?->database,
-            'expected_user' => $tenant?->username,
             'current_db' => $dbName,
             'current_user' => $dbUser,
             'tenancy_initialized' => $tenancy->initialized,
@@ -39,20 +48,10 @@ Route::middleware([
         ];
     });
     Route::get('/employees-count', function () {
-        $tenant = tenant();
-        if ($tenant && $tenant->database) {
-            // Copy central connection config
-            $centralConfig = config('database.connections.central');
-            $centralConfig['database'] = $tenant->database;
-            $centralConfig['username'] = $tenant->username;
-            $centralConfig['password'] = $tenant->password;
-            // Set the full config for tenant connection
-            config(['database.connections.tenant' => $centralConfig]);
+    
             // Now use the tenant connection
-            $count = DB::connection('tenant')->table('employees')->count();
+            $count = DB::table('employees')->count();
             return ['employees_count' => $count];
-        }
-        return response()->json(['error' => 'Tenant DB not found'], 404);
     });
     Route::get('/check-db', function () {
         return [
