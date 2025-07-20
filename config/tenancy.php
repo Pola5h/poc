@@ -38,19 +38,15 @@ return [
      * Database tenancy config. Used by DatabaseTenancyBootstrapper.
      */
     'database' => [
-        'central_connection' => env('DB_CONNECTION', 'central'),
 
-        /**
-         * Connection used as a "template" for the dynamically created tenant database connection.
-         * Note: don't name your template connection tenant. That name is reserved by package.
-         */
-        'template_tenant_connection' => null,
+        'central_connection' => env('DB_CONNECTION', 'central'),
+        'template_tenant_connection' => 'tenant',
 
         /**
          * Tenant database names are created like this:
          * prefix + tenant_id + suffix.
          */
-        'prefix' => 'tenant',
+        'prefix' => '',
         'suffix' => '',
 
         /**
