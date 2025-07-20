@@ -1,12 +1,15 @@
 <?php
 
+
 declare(strict_types=1);
+
 
 use App\Models\Tenant;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
+use App\Models\Employee;
 
 // Customize detection logic
 InitializeTenancyByRequestData::$header = 'X-TENANT-ID';
@@ -58,5 +61,57 @@ Route::middleware([
             'tenant_id' => tenant()?->id,
             'db' => DB::connection()->getDatabaseName(),
         ];
+    });
+
+    // Employee CRUD API
+
+    // List all employees
+    Route::get('/employees', function () {
+        return Employee::all();
+    });
+
+    // Get a single employee
+    Route::get('/employees/{id}', function ($id) {
+        $employee = Employee::find($id);
+        if (!$employee) {
+            return response()->json(['error' => 'Employee not found'], 404);
+        }
+        return $employee;
+    });
+
+    // Create a new employee
+    Route::post('/employees', function (\Illuminate\Http\Request $request) {
+        $data = $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|email|unique:employees,email',
+            'tenant_name' => 'required|string',
+        ]);
+        $employee = Employee::create($data);
+        return response()->json($employee, 201);
+    });
+
+    // Update an employee
+    Route::put('/employees/{id}', function (\Illuminate\Http\Request $request, $id) {
+        $employee = Employee::find($id);
+        if (!$employee) {
+            return response()->json(['error' => 'Employee not found'], 404);
+        }
+        $data = $request->validate([
+            'name' => 'sometimes|required|string',
+            'email' => 'sometimes|required|email|unique:employees,email,' . $id,
+            'tenant_name' => 'sometimes|required|string',
+        ]);
+        $employee->update($data);
+        return $employee;
+    });
+
+    // Delete an employee
+    Route::delete('/employees/{id}', function ($id) {
+        $employee = Employee::find($id);
+        if (!$employee) {
+            return response()->json(['error' => 'Employee not found'], 404);
+        }
+        $employee->delete();
+        return response()->json(['message' => 'Employee deleted']);
     });
 });
