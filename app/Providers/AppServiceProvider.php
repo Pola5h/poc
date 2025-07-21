@@ -1,11 +1,11 @@
 <?php
 
 namespace App\Providers;
-use App\Models\Tenant;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Stancl\Tenancy\Events\TenancyInitialized;
+use Illuminate\Support\Facades\Event;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,13 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-         // Listen for tenancy initialization
-    \Event::listen(TenancyInitialized::class, function ($event) {
-        $tenant = Tenant::find('tenant1');
-
-        $dbName = DB::connection()->getDatabaseName();
-        $tenantId = tenant()?->id;
-        Log::info("✅ Tenancy initialized for [{$tenantId}] using DB [{$dbName}], tenant data:[$tenant]");
+    Event::listen(TenancyInitialized::class, function () {
+        $tenant = tenancy()->tenant;
+        Log::info("Tenancy initialized for tenant {$tenant->id}");
     });
+
     }
 }
